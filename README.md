@@ -16,7 +16,7 @@ If captcha check fails page is reloaded to show the invalid captcha message and 
 Validations assumed on form field :
 1. All the fields are required.
 2. Email has to be unique.
-3.Password can be anything
+3. Password can be anything
 4. Captcha shown as required.
 
 
