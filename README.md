@@ -1,6 +1,6 @@
 # Registration with captcha check
  
-Hi, I have named the app "reg" which handles the process.
+I have named the app "reg" which handles the process.
 
 I have considered two models in models.py :
 1. One for user which store user's name,email and password.
