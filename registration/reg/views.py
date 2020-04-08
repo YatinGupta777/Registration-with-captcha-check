@@ -7,6 +7,7 @@ from django.http import JsonResponse
 import requests
 from django.conf import settings
 from django.contrib import messages
+import datetime
 
 
 def signup(request):
@@ -17,9 +18,14 @@ def signup(request):
     #When the user visit the page or reloads it
     try:
         counter = IpCount.objects.get(ip_address=ip)
+        if(counter.last_date != datetime.date.today() and counter.count < 4):
+            counter.last_date = datetime.date.today()
+            counter.count = 0
+            counter.save()
     except IpCount.DoesNotExist:
         counter = IpCount()
         counter.ip_address = ip
+        counter.last_date = datetime.date.today()
         counter.save()
         
     
@@ -32,6 +38,9 @@ def signup(request):
         if form.is_valid():
             
             counter = IpCount.objects.get(ip_address=ip)
+            html_ip_address = counter.ip_address
+            html_count = counter.count       
+            
             if(counter.count > 3):
                 ''' Begin reCAPTCHA validation '''
                 recaptcha_response = request.POST.get('g-recaptcha-response')
@@ -48,6 +57,7 @@ def signup(request):
                     return redirect('success')
                 else:
                     invalid = True
+                    return render(request, 'signup.html', {'form': form,"html_ip_address":html_ip_address,"html_count":html_count,"invalid":invalid})
             else:
                 form.save()
                 return redirect('success')    
@@ -64,7 +74,6 @@ def success(request):
 #When user try to register
 def registration_attempt(request):
     ip, is_routable = get_client_ip(request)
-    
     try:
         counter = IpCount.objects.get(ip_address=ip)
         counter.count = counter.count+1
@@ -72,6 +81,7 @@ def registration_attempt(request):
     except IpCount.DoesNotExist:
         counter = IpCount()
         counter.ip_address = ip
+        counter.last_date = datetime.date.today()
         counter.save()
     
     html_ip_address = counter.ip_address
