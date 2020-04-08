@@ -20,3 +20,12 @@ Validations assumed on form field :
 4. Captcha shown as required.
 
 
+*Working*
+1. The HTML page takes only 3 user inputs - Name, email, and password.
+2. If someone from the same IP address attempts to register more than 3 times in a day,
+they are presented with a captcha (Google Recaptcha). The captcha is 
+validated for all subsequent attempts to register for that IP address.
+3. If everything in the input is fine, then the user details are stored in a Mongo
+database.
+
+
