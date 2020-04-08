@@ -122,3 +122,4 @@ TEMPLATE_DIR = os.path.join(BASE_DIR,'templates')
 STATIC_DIR = os.path.join(BASE_DIR,'static')
 MEDIA_DIR = os.path.join(BASE_DIR,'media')
 STATIC_URL = '/static/'
+GOOGLE_RECAPTCHA_SECRET_KEY = '6LewuOcUAAAAANxG6XpZ0Ao_86Woo-JpOagw95xN'

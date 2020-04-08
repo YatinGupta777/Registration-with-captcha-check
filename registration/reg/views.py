@@ -3,52 +3,80 @@ from django.shortcuts import render, redirect
 from ipware import get_client_ip
 from .forms import *
 from .models import User,IpCount
+from django.http import JsonResponse
+import requests
+from django.conf import settings
+from django.contrib import messages
+
 
 def signup(request):
+
     ip, is_routable = get_client_ip(request)
-    captcha = False
+    invalid = False
+    
+    #When the user visit the page or reloads it
     try:
         counter = IpCount.objects.get(ip_address=ip)
-        counter.count = counter.count+1
-        counter.save()
-        if(counter.count > 3):
-            captcha = True
     except IpCount.DoesNotExist:
         counter = IpCount()
         counter.ip_address = ip
         counter.save()
-                
+        
+    
+    html_ip_address = counter.ip_address
+    html_count = counter.count            
+    
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         
         if form.is_valid():
-            form.save()
-            return redirect('success')
+            
+            counter = IpCount.objects.get(ip_address=ip)
+            if(counter.count > 3):
+                ''' Begin reCAPTCHA validation '''
+                recaptcha_response = request.POST.get('g-recaptcha-response')
+                data = {
+                    'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+                    'response': recaptcha_response
+                }
+                r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=data)
+                result = r.json()
+                ''' End reCAPTCHA validation '''
+                
+                if result['success']:
+                    form.save()
+                    return redirect('success')
+                else:
+                    invalid = True
+            else:
+                form.save()
+                return redirect('success')    
+               # return render(request, 'signup.html', {'form': form,"html_ip_address":html_ip_address,"html_count":html_count,"invalid":invalid})
+
     else:
         form = SignUpForm()
         
-    return render(request, 'signup.html', {'form': form, 'captcha':captcha})
+    return render(request, 'signup.html', {'form': form,"html_ip_address":html_ip_address,"html_count":html_count,"invalid":invalid})
 
 def success(request):
     return render(request, 'success.html')
 
-
-# =============================================================================
-# def registration_attempt(request):
-#     ip, is_routable = get_client_ip(request)
-#     captcha = False
-#     try:
-#         counter = IpCount.objects.get(ip_address=ip)
-#         counter.count = counter.count+1
-#         counter.save()
-#         if(counter.count > 3):
-#             captcha = True
-#     except IpCount.DoesNotExist:
-#         counter = IpCount()
-#         counter.ip_address = ip
-#         counter.save()
-#     data = {
-#         'captcha': captcha
-#     }
-#     return JsonResponse(data)        
-# =============================================================================
+#When user try to register
+def registration_attempt(request):
+    ip, is_routable = get_client_ip(request)
+    
+    try:
+        counter = IpCount.objects.get(ip_address=ip)
+        counter.count = counter.count+1
+        counter.save()
+    except IpCount.DoesNotExist:
+        counter = IpCount()
+        counter.ip_address = ip
+        counter.save()
+    
+    html_ip_address = counter.ip_address
+    html_count = counter.count        
+    data = {
+        'html_ip_address': html_ip_address, "html_count":html_count
+    }
+    return JsonResponse(data)        

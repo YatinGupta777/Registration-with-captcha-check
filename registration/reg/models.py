@@ -7,4 +7,4 @@ class User(models.Model):
     
 class IpCount(models.Model):    
     ip_address = models.GenericIPAddressField()
-    count = models.IntegerField(default=1)
+    count = models.IntegerField(default=0)
